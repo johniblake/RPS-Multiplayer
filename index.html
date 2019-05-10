@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="stylesheet" href="./assets/css/style.css" />
+    <title>Rock, Paper, Scissors</title>
+  </head>
+  <body>
+    <div id="main-container">
+      <div id="display-name"></div>
+      <div id="app-container">
+          <div id="game-container">
+              <h6 id="game-title"></h6>
+              <div id="message-container"></div>
+              <div id="moves-container"></div>
+            </div>
+            <div id="instance-container">
+              <div id="create-game-button">+ Create Game</div>
+              <div id="game-list-container"></div>
+            </div>
+            <div id="chat-container">
+              <div id="messages-container"></div>
+              <div id="chat-box-container">
+                <form>
+                  <input type="text" id="draft-message"></input>
+                  <input id="send-message" type="submit" value="Send"></input>
+                </div>
+              </form>
+            </div>
+
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.11.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.11.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.11.1/firebase-auth.js"></script>
+
+    <script src="./assets/javascript/app.js"></script>
+  </body>
+</html>
