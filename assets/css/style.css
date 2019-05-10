@@ -105,6 +105,18 @@ body {
   margin: 5px;
 }
 
+.my-move {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.their-move {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 #messages-container {
   border: 1px solid lightgray;
   background-color: white;

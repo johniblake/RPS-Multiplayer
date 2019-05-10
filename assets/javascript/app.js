@@ -1,4 +1,4 @@
-// Your web app's Firebase configuration
+//Firebase configuration
 var firebaseConfig = {
   apiKey: "AIzaSyC2PR24dgaRR0DcZaQZlDxzIKeprjdIHng",
   authDomain: "rps-multiplayer-152da.firebaseapp.com",
@@ -51,8 +51,7 @@ function createGame() {
         gameListener(gameRef.key);
       }
     })
-    .error(function() {
-      console.log("Created Game.");
+    .catch(function() {
       $("#instance-container").css("display", "flex");
       $("#game-container").css("display", "none");
       $("#message-container").html("");
@@ -101,8 +100,9 @@ function joinedGame(gameRef, game) {
   }, 1200);
 }
 
+//display move buttons on the DOM
+//wait for moves
 function displayAvailableMoves(gameRef, game) {
-  //display move buttons on the DOM
   let movesContainer = $("#moves-container");
   let rock = $("<div>");
   let paper = $("<div>");
@@ -119,23 +119,16 @@ function displayAvailableMoves(gameRef, game) {
     "<img class='move-image' src='./assets/images/scissors.png'></img>"
   );
 
-  //gameContainer.html("");
   movesContainer.append(rock);
   movesContainer.append(paper);
   movesContainer.append(scissors);
-  // add listeners to buttons that add a selected move to each player if one is clicked
-  // add listener to both children to determine if both players have selected a move
-  //if they have set state to PICKED_MOVE
-  //listen for user moves
-  console.log("Adding child listener on Game.");
+
+  //listen for player moves
+  //set state to PICKED_MOVE if both players have chosen a move
   gameRef.on("child_changed", function(snapshot) {
     gameRef.once("value").then(function(snap) {
       let game = snap.val();
-      console.log(snap.val());
-      console.log(game.creator.move);
-      console.log(game.joiner.move);
       if (game.creator.move !== undefined && game.joiner.move !== undefined) {
-        console.log("both players have moved");
         $("#message-container").html("");
         $(".move").remove();
         let winner = getWinner(game.creator, game.joiner);
@@ -162,13 +155,12 @@ function displayAvailableMoves(gameRef, game) {
 function getWinner(creator, joiner) {
   let creatorMove = creator.move;
   let joinerMove = joiner.move;
-  //Rock > Scissors > Paper > Rock
   let result;
+
   if (creatorMove == joinerMove) result = "tie";
   else if ((creatorMove - joinerMove + 3) % 3 == 1) result = creator;
   else result = joiner;
-  console.log("winner:");
-  console.log(result);
+
   return result;
 }
 
@@ -177,7 +169,13 @@ function displayResult(gameRef, game) {
   //wait, then change state to COMPLETE
   let myMove = "";
   let theirMove = "";
-  let moves = { 0: "Rock", 1: "Paper", 2: "Scissors" };
+
+  let moves = {
+    0: "./assets/images/rock.png",
+    1: "./assets/images/paper.png",
+    2: "./assets/images/scissors.png"
+  };
+
   if (firebase.auth().currentUser.uid === game.creator.uid) {
     myMove = game.creator.move;
     theirMove = game.joiner.move;
@@ -185,15 +183,31 @@ function displayResult(gameRef, game) {
     theirMove = game.creator.move;
     myMove = game.joiner.move;
   }
-  $("#message-container").append("<div>My Move: " + moves[myMove] + "</div>");
-  $("#message-container").append(
-    "<div>Opponent's Move: " + moves[theirMove] + "</div>"
-  );
+  let myDiv = $("<div>");
+  let myImage = $("<img>");
+  myDiv.addClass("my-move");
+  myDiv.append("<h4>My Move:</h4>");
+  myImage.addClass("move-image");
+  myImage.attr("src", moves[myMove]);
+  myDiv.append(myImage);
+
+  let theirDiv = $("<div>");
+  let theirImage = $("<img>");
+  theirDiv.addClass("their-move");
+  theirDiv.append("<h4>Their Move:</h4>");
+  theirImage.addClass("move-image");
+  theirImage.attr("src", moves[theirMove]);
+  theirDiv.append(theirImage);
+
+  $("#moves-container").append(myDiv);
+  $("#moves-container").append(theirDiv);
+
   setTimeout(function() {
     gameRef.update({ state: STATE.COMPLETE });
   }, 2000);
 }
 
+//display the winner, then tear down game and bring user back to lobby
 function showWinner(gameRef, game) {
   if (game.winner !== "tie") {
     $("#message-container").html("Winner: " + game.winner.displayName);
@@ -207,7 +221,9 @@ function showWinner(gameRef, game) {
 
 function tearDownGame(gameRef) {
   gameRef.remove();
+  $("#game-title").html("");
   $("#message-container").html("");
+  $("#moves-container").html("");
   $("#game-container").css("display", "none");
   $("#instance-container").css("display", "flex");
 }
@@ -245,6 +261,7 @@ function gameListener(key) {
   });
 }
 
+//create new anonymous account for each new user session
 function signInUser() {
   firebase
     .auth()
@@ -254,13 +271,7 @@ function signInUser() {
         .auth()
         .signInAnonymously()
         .catch(function(error) {
-          // Handle Errors here.
-          console.log("Error:");
-          var errorCode = error.code;
-          var errorMessage = error.message;
-          console.log(errorCode);
-          console.log(errorMessage);
-          // ...
+          console.log(error.message);
           return null;
         });
     })
@@ -270,27 +281,29 @@ function signInUser() {
 }
 
 $(document).ready(function() {
+  //listen for create game button presses
   $(document).on("click", "#create-game-button", function() {
     createGame();
   });
 
+  //listen for join game button presses
   $(document).on("click", ".game-button", function() {
     let gameKey = $(this).val();
-    console.log(gameKey);
     joinGame(gameKey);
   });
 
+  //listen for moves, and notify the game
   $(document).on("click", ".move", function() {
     let val = $(this)
       .val()
       .split(" ");
     let gameKey = val[0];
     let move = val[1];
-    console.log("gamekey: " + gameKey);
     let gameRef = db.ref("/games").child(gameKey);
+
     gameRef.once("value").then(function(snapshot) {
       let game = snapshot.val();
-      console.log(game);
+
       if (firebase.auth().currentUser.uid === game.creator.uid) {
         gameRef.child("creator").update({
           move: move
@@ -301,10 +314,9 @@ $(document).ready(function() {
         });
       }
     });
-
-    //console.log(game);
   });
 
+  //listen for send button clicks and send the associated message
   $(document).on("click", "#send-message", function(event) {
     event.preventDefault();
     CHAT.push({
@@ -315,6 +327,7 @@ $(document).ready(function() {
     });
   });
 
+  //let users set their display name upon sign in
   firebase.auth().onAuthStateChanged(function(user) {
     if (user) {
       user
@@ -325,14 +338,14 @@ $(document).ready(function() {
           $("#display-name").html("Display Name: " + user.displayName);
         })
         .catch(function(error) {
-          console.log("error setting disply nme");
+          console.log("error setting disply name");
         });
-      // ...
     } else {
       console.log("You have been signed out.");
     }
   });
 
+  //listen for new messages
   CHAT.on("child_added", function(snapshot) {
     let packet = snapshot.val();
     let sender = $("<p>");
@@ -351,25 +364,25 @@ $(document).ready(function() {
     );
   });
 
+  //listen for new games
   OPEN_GAMES.on("child_added", function(snapshot) {
-    //populate Dom with open games
-    //console.log(snapshot.key);
-    //console.log(snapshot.val());
     let gameDiv = $("<button>");
+
     gameDiv.attr("id", snapshot.key);
     gameDiv.val(snapshot.key);
     gameDiv.addClass("game-button");
+
     gameDiv.html("Join " + snapshot.val().creator.displayName + "'s game");
     $("#game-list-container").append(gameDiv);
   });
 
+  //remove games from DOM that have been joined
   OPEN_GAMES.on("child_removed", function(snapshot) {
-    //remove game from the DOM
-    console.log("removing game: " + snapshot.key);
     let item = $("#" + snapshot.key);
     item.remove();
   });
 
+  //create new account for user and sign them in if they dont have an active session
   if (!firebase.auth().currentUser) {
     signInUser();
   }
