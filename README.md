@@ -2,6 +2,8 @@
 
 ## **A simple multiplayer game of Rock, Paper Scissors.**
 
+Play the game [here](https://johniblake.github.io/RPS-Multiplayer/).
+
 **How to Play**
 
 - Load the page and enter a user name when prompted.
